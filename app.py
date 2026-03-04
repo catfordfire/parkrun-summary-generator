@@ -15,6 +15,26 @@ os.makedirs(SUMMARIES_DIR, exist_ok=True)
 # Thread-local storage for fetched HTML (lives for one generate cycle)
 _fetch_store = {}
 
+COUNTER_FILE = os.path.join(SUMMARIES_DIR, ".report_counter.json")
+
+def get_report_count() -> int:
+    try:
+        import json
+        with open(COUNTER_FILE, "r") as f:
+            return json.load(f).get("count", 0)
+    except Exception:
+        return 0
+
+def increment_report_count() -> int:
+    import json
+    count = get_report_count() + 1
+    try:
+        with open(COUNTER_FILE, "w") as f:
+            json.dump({"count": count}, f)
+    except Exception:
+        pass
+    return count
+
 
 def sanitise_event_name(name: str) -> str:
     """Strip trailing 'parkrun' (case-insensitive) so we don't get 'Catford parkrun parkrun'."""
@@ -172,9 +192,20 @@ footer{text-align:center;color:var(--muted);font-size:.75em;padding:20px}
     <div id="statbox"></div>
   </div>
 </main>
-<footer>parkrun Summary Generator &nbsp;&middot;&nbsp; Data from parkrun.org.uk</footer>
+<footer>parkrun Summary Generator &nbsp;&middot;&nbsp; Data from parkrun.org.uk &nbsp;&middot;&nbsp; <span id="reportcount"></span></footer>
 <script>
 let AE=[],SE=null,dataReady=false;
+
+// ── Report counter ─────────────────────────────────────────────────────────
+(async()=>{
+  try{
+    const r=await fetch('/counter');
+    const d=await r.json();
+    if(d.count>0){
+      document.getElementById('reportcount').textContent='📊 '+d.count+' report'+(d.count===1?'':'s')+' generated';
+    }
+  }catch(e){}
+})();
 
 // ── Load events ────────────────────────────────────────────────────────────
 async function loadEvents(){
@@ -367,6 +398,11 @@ def read_cache(slug: str):
     }
 
 
+@app.route("/counter")
+def counter():
+    return jsonify({"count": get_report_count()})
+
+
 @app.route("/test-fetch")
 def test_fetch():
     """Debug route: fetch Shrewsbury event history and return status + first 500 chars."""
@@ -458,11 +494,13 @@ def generate():
             os.fsync(f.fileno())
         os.replace(tmp_path, final_path)
 
+        count = increment_report_count()
         return jsonify({
             "ok":       True,
             "filename": hfn,
             "size":     os.path.getsize(final_path),
             "date":     datetime.date.today().strftime("%A, %d %B %Y"),
+            "count":    count,
         })
 
     except Exception as e:
