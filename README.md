@@ -29,7 +29,7 @@ Built for parkrun volunteers and run directors who want a polished, shareable ev
 
 ## Screenshots
 
-![parkrun Summary Generator](screenshots/Screenshot.png)
+_Coming soon_
 
 ---
 
@@ -139,3 +139,22 @@ Pull requests welcome. Please open an issue first for significant changes.
 ## Licence
 
 MIT
+
+---
+
+## Changelog
+
+### v1.1
+- Weather icons now reflect actual conditions (☀️ clear, ⛅ partly cloudy, 🌦️ rain, ❄️ snow, ⛈️ thunder etc.)
+- Rain field now shows ✅ Dry or 🌧️ with the actual amount — no more raincloud icon when it's dry
+- "First time at Shrewsbury" renamed to "First time at this event" for full generic support
+- `shrewsbury_summary.py` renamed to `parkrun_summary.py`
+- Favicon added — parkrun-inspired green icon with running figure and "p" lettermark
+
+### v1.0
+- Initial release
+- Search any global parkrun event
+- Automatic server-side data fetching via cloudscraper
+- Full weekly summary: attendance, volunteers, top 10, PBs, milestones, age categories, clubs, records
+- Weather via Open-Meteo (no API key required)
+- Docker-ready for self-hosted deployment
