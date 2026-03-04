@@ -29,7 +29,8 @@ Built for parkrun volunteers and run directors who want a polished, shareable ev
 
 ## Screenshots
 
-_Coming soon_
+![parkrun Summary Generator](screenshots/Screenshot.png)
+
 
 ---
 
@@ -147,8 +148,8 @@ MIT
 ### v1.1
 - Weather icons now reflect actual conditions (☀️ clear, ⛅ partly cloudy, 🌦️ rain, ❄️ snow, ⛈️ thunder etc.)
 - Rain field now shows ✅ Dry or 🌧️ with the actual amount — no more raincloud icon when it's dry
-- Renamed to "First time at this event" for full generic support
-- Renamed to `parkrun_summary.py`
+- "First time at this event" now fully generic for any parkrun location
+- `parkrun_summary.py` — fully generic, works for any parkrun event worldwide
 - Favicon added — parkrun-inspired green icon with running figure and "p" lettermark
 
 ### v1.0
