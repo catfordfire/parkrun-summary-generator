@@ -142,7 +142,7 @@ footer{text-align:center;color:var(--muted);font-size:.75em;padding:20px}
     <!-- Event search -->
     <div class="sw">
       <span class="si">&#128269;</span>
-      <input type="text" id="evtsearch" placeholder="Search for your parkrun (e.g. Catford, Shrewsbury)..." autocomplete="off">
+      <input type="text" id="evtsearch" placeholder="Search for your parkrun (e.g. Bushy)..." autocomplete="off">
       <button class="clrbtn" id="clrbtn" title="Clear">&#10005;</button>
       <div class="drop" id="dropdown"></div>
     </div>
