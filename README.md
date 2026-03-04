@@ -147,8 +147,8 @@ MIT
 ### v1.1
 - Weather icons now reflect actual conditions (☀️ clear, ⛅ partly cloudy, 🌦️ rain, ❄️ snow, ⛈️ thunder etc.)
 - Rain field now shows ✅ Dry or 🌧️ with the actual amount — no more raincloud icon when it's dry
-- "First time at Shrewsbury" renamed to "First time at this event" for full generic support
-- `shrewsbury_summary.py` renamed to `parkrun_summary.py`
+- Renamed to "First time at this event" for full generic support
+- Renamed to `parkrun_summary.py`
 - Favicon added — parkrun-inspired green icon with running figure and "p" lettermark
 
 ### v1.0
