@@ -29,7 +29,7 @@ Built for parkrun volunteers and run directors who want a polished, shareable ev
 
 ## Screenshots
 
-_Coming soon_
+![parkrun Summary Generator](screenshots/screenshot.png)
 
 ---
 
