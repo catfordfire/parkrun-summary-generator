@@ -1,0 +1,11 @@
+version: "3.8"
+
+services:
+  parkrun-web:
+    build: .
+    container_name: parkrun-web
+    restart: unless-stopped
+    ports:
+      - "8767:8767"
+    volumes:
+      - /volume1/docker/parkrun-data/summaries:/data/summaries
