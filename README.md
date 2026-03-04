@@ -145,6 +145,10 @@ MIT
 
 ## Changelog
 
+### v1.2
+- Persistent report counter — tracks total summaries generated across rebuilds, displayed in the footer
+- Search placeholder updated to "e.g. Bushy"
+
 ### v1.1
 - Weather icons now reflect actual conditions (☀️ clear, ⛅ partly cloudy, 🌦️ rain, ❄️ snow, ⛈️ thunder etc.)
 - Rain field now shows ✅ Dry or 🌧️ with the actual amount — no more raincloud icon when it's dry
