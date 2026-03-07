@@ -875,8 +875,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     {repdigit_html}
   </div>
   <div class="card">
-    <h2><span>🏃</span> Biggest Clubs This Week</h2>
+    <h2><span>🏃</span> Clubs This Week</h2>
     {clubs_html}
+  </div>
+</div>
+
+<div class="grid">
+  <div class="card full">
+    <h2><span>👥</span> Club Runners This Week</h2>
+    <div class="sub">All affiliated runners grouped by club</div>
+    {club_runners_html}
   </div>
 </div>
 
@@ -912,14 +920,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   <div class="card full">
     <h2><span>📋</span> Age Category Winners</h2>
     {age_cat_html}
-  </div>
-</div>
-
-<div class="grid">
-  <div class="card full">
-    <h2><span>🏃</span> Clubs</h2>
-    <div class="sub">Runners representing affiliated clubs</div>
-    {clubs_html}
   </div>
 </div>
 
@@ -1058,7 +1058,7 @@ def build_fun_list_html(runners: List[LatestRunner], show_time: bool = True) -> 
 def build_clubs_html(club_counts: Counter) -> str:
     if not club_counts:
         return '<span class="empty">No club data.</span>'
-    top   = club_counts.most_common(7)
+    top   = club_counts.most_common()
     max_c = top[0][1] if top else 1
     return "\n".join(
         f'<div class="club-bar">'
@@ -1259,6 +1259,26 @@ def build_locals_and_tourists_html(locals_: List[LatestRunner], tourists: List[L
     )
 
 
+def build_club_runners_html(affiliated: List[LatestRunner]) -> str:
+    if not affiliated:
+        return '<span class="empty">No club runners this week.</span>'
+    by_club: dict = {}
+    for r in affiliated:
+        by_club.setdefault(r.club, []).append(r)
+    items = []
+    for club, members in sorted(by_club.items(), key=lambda x: (-len(x[1]), x[0])):
+        names = ", ".join(m.name for m in members)
+        count_badge = f'<span class="badge badge-first">{len(members)}</span>' if len(members) > 1 else ""
+        items.append(
+            f'<li>'
+            f'<span class="fl-pos" style="min-width:180px">'
+            f'{club}{count_badge}</span>'
+            f'<span class="fl-name">{names}</span>'
+            f'</li>'
+        )
+    return '<ul class="fun-list">' + "\n".join(items) + "</ul>"
+
+
 def build_volunteer_html(volunteers: List[str], doublers: List[LatestRunner],
                          stats: dict) -> str:
     parts = []
@@ -1391,6 +1411,7 @@ def build_weekly_summary_html(history_path: str, latest_path: str, event_name: s
         mult50_html              = build_fun_list_html(mult_50),
         repdigit_html            = build_fun_list_html(rep_digit),
         clubs_html               = build_clubs_html(Counter(r.club for r in affiliated)),
+        club_runners_html        = build_club_runners_html(affiliated),
         milestone_achievers_html = build_milestone_achievers_html(milestone_achievers),
         milestone_chasers_html   = build_milestone_chasers_html(milestone_chasers),
         first_timers_html        = build_first_timers_html(first_ever, first_here),
