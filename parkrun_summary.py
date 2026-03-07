@@ -947,14 +947,33 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 </html>"""
 
 
+def condition_icon(condition: str) -> str:
+    c = condition.lower()
+    if "thunder" in c:              return "⛈️"
+    if "heavy rain" in c or "heavy shower" in c: return "🌧️"
+    if "rain" in c or "shower" in c or "drizzle" in c: return "🌦️"
+    if "snow" in c:                 return "❄️"
+    if "fog" in c:                  return "🌫️"
+    if "overcast" in c:             return "☁️"
+    if "partly cloudy" in c:        return "⛅"
+    if "mainly clear" in c or "clear" in c: return "☀️"
+    return "🌤️"
+
+
+def rain_icon(rain: str) -> str:
+    return "🌧️" if rain != "Dry" else "✅"
+
+
 def build_weather_html(w: dict) -> str:
     if "error" in w:
         return f'<span class="empty">Weather unavailable: {w["error"]}</span>'
+    condition = w.get("condition", "—")
+    rain      = w.get("rain", "—")
     items = [
-        ("☁️", "Conditions", w.get("condition", "—")),
-        ("🌡️", "Temp",       w.get("temp",      "—")),
-        ("💨", "Wind",       w.get("wind",      "—")),
-        ("🌧️", "Rain",       w.get("rain",      "—")),
+        (condition_icon(condition), "Conditions", condition),
+        ("🌡️",                      "Temp",       w.get("temp", "—")),
+        ("💨",                      "Wind",       w.get("wind", "—")),
+        (rain_icon(rain),           "Rain",       rain),
     ]
     return "\n".join(
         f'<div class="weather-item">'
