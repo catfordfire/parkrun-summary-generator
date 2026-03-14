@@ -4,7 +4,7 @@ from flask import Flask, request, render_template_string, send_file, jsonify
 import cloudscraper
 
 sys.path.insert(0, "/app")
-from parkrun_summary import build_weekly_summary_html
+from shrewsbury_summary import build_weekly_summary_html
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 20 * 1024 * 1024
@@ -265,7 +265,7 @@ async function handleUpload(inputId, lblId, stId, fileType){
       document.getElementById(stId).className='status ok';
       document.getElementById(stId).innerHTML='&#10003; Uploaded ('+d.count+' '+(fileType==='history'?'events':'runners')+')';
       document.getElementById(lblId).classList.add('done');
-      document.getElementById(lblId).textContent='&#10003; Uploaded';
+      document.getElementById(lblId).innerHTML='&#10003; Uploaded';
       checkUploadReady();
     }else{
       document.getElementById(stId).className='status er';
@@ -516,7 +516,7 @@ def fetch_event():
     cached = read_cache(slug)
 
     try:
-        from parkrun_summary import parse_event_history, parse_latest_results
+        from shrewsbury_summary import parse_event_history, parse_latest_results
         event_count  = len(parse_event_history(cached["history_path"]))
         runner_count = len(parse_latest_results(cached["latest_path"]))
         return jsonify({"ok": True, "event_count": event_count, "runner_count": runner_count})
