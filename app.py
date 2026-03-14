@@ -15,26 +15,6 @@ os.makedirs(SUMMARIES_DIR, exist_ok=True)
 # Thread-local storage for fetched HTML (lives for one generate cycle)
 _fetch_store = {}
 
-COUNTER_FILE = os.path.join(SUMMARIES_DIR, ".report_counter.json")
-
-def get_report_count() -> int:
-    try:
-        import json
-        with open(COUNTER_FILE, "r") as f:
-            return json.load(f).get("count", 0)
-    except Exception:
-        return 0
-
-def increment_report_count() -> int:
-    import json
-    count = get_report_count() + 1
-    try:
-        with open(COUNTER_FILE, "w") as f:
-            json.dump({"count": count}, f)
-    except Exception:
-        pass
-    return count
-
 
 def sanitise_event_name(name: str) -> str:
     """Strip trailing 'parkrun' (case-insensitive) so we don't get 'Catford parkrun parkrun'."""
@@ -71,7 +51,6 @@ HTML_PAGE = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNiIgZmlsbD0iIzAwNEYyRCIvPgogIDwhLS0gaGVhZCAtLT4KICA8Y2lyY2xlIGN4PSIyMSIgY3k9IjciIHI9IjIuNSIgZmlsbD0id2hpdGUiLz4KICA8IS0tIGJvZHkgLS0+CiAgPGxpbmUgeDE9IjIxIiB5MT0iOS41IiB4Mj0iMTkiIHkyPSIxNiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8IS0tIGxlZnQgYXJtIChiYWNrKSAtLT4KICA8bGluZSB4MT0iMjAuNSIgeTE9IjEyIiB4Mj0iMTUiIHkyPSIxMSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIxLjgiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDwhLS0gcmlnaHQgYXJtIChmb3J3YXJkKSAtLT4KICA8bGluZSB4MT0iMjAuNSIgeTE9IjEyIiB4Mj0iMjQiIHkyPSIxNCIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIxLjgiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDwhLS0gbGVmdCBsZWcgKGZvcndhcmQpIC0tPgogIDxsaW5lIHgxPSIxOSIgeTE9IjE2IiB4Mj0iMTUiIHkyPSIyMiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIxLjgiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDwhLS0gcmlnaHQgbGVnIChiYWNrKSAtLT4KICA8bGluZSB4MT0iMTkiIHkxPSIxNiIgeDI9IjIzIiB5Mj0iMjIiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8IS0tIGxvd2VyIGxlZnQgbGVnIC0tPgogIDxsaW5lIHgxPSIxNSIgeTE9IjIyIiB4Mj0iMTMiIHkyPSIyNiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIxLjgiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDwhLS0gbG93ZXIgcmlnaHQgbGVnIC0tPgogIDxsaW5lIHgxPSIyMyIgeTE9IjIyIiB4Mj0iMjQiIHkyPSIyNiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIxLjgiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDwhLS0gInAiIGxldHRlcm1hcmsgLS0+CiAgPHRleHQgeD0iNSIgeT0iMjUiIGZvbnQtZmFtaWx5PSJBcmlhbCxzYW5zLXNlcmlmIiBmb250LXdlaWdodD0iOTAwIiBmb250LXNpemU9IjE2IiBmaWxsPSJ3aGl0ZSI+cDwvdGV4dD4KPC9zdmc+">
 <title>parkrun - Weekly Summary Generator</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -114,6 +93,9 @@ main{flex:1;max-width:640px;margin:48px auto;padding:0 24px;width:100%}
 .fetch-link .status{font-size:.78em;margin-top:4px}
 .fetch-link .status.ok{color:#1e8449}
 .fetch-link .status.er{color:var(--red)}
+.upload-lbl{font-size:.75em;color:var(--mid);cursor:pointer;margin-top:6px;display:inline-block}
+.upload-lbl:hover{color:var(--green);text-decoration:underline}
+.upload-lbl.done{color:#1e8449}
 /* buttons */
 .btn{width:100%;padding:15px;background:var(--green);color:var(--white);border:none;border-radius:10px;font-family:"DM Sans",sans-serif;font-size:1em;font-weight:600;cursor:pointer;transition:background .2s,transform .1s;margin-top:4px}
 .btn:hover:not(:disabled){background:var(--mid)}
@@ -150,7 +132,7 @@ footer{text-align:center;color:var(--muted);font-size:.75em;padding:20px}
     <p class="hint">Search for your parkrun event, fetch the data, and generate your weekly summary.</p>
     <div class="steps">
       <div class="step"><div class="stepn">1</div><div class="stept">Search for and select your parkrun event below</div></div>
-      <div class="step"><div class="stepn">2</div><div class="stept">Click <strong>Fetch Data</strong> &mdash; the server retrieves your event&rsquo;s results automatically</div></div>
+      <div class="step"><div class="stepn">2</div><div class="stept">Click <strong>Fetch Data</strong> &mdash; the server retrieves your event&rsquo;s results automatically. If blocked, save the pages manually in your browser and upload them instead.</div></div>
       <div class="step"><div class="stepn">3</div><div class="stept">Click <strong>Generate Summary</strong></div></div>
     </div>
   </div>
@@ -162,7 +144,7 @@ footer{text-align:center;color:var(--muted);font-size:.75em;padding:20px}
     <!-- Event search -->
     <div class="sw">
       <span class="si">&#128269;</span>
-      <input type="text" id="evtsearch" placeholder="Search for your parkrun (e.g. Bushy)..." autocomplete="off">
+      <input type="text" id="evtsearch" placeholder="Search for your parkrun (e.g. Shrewsbury)..." autocomplete="off">
       <button class="clrbtn" id="clrbtn" title="Clear">&#10005;</button>
       <div class="drop" id="dropdown"></div>
     </div>
@@ -178,11 +160,13 @@ footer{text-align:center;color:var(--muted);font-size:.75em;padding:20px}
           <span class="lbl">&#128203; Event History</span>
           <span class="url" id="url-history"></span>
           <span class="status" id="st-history"></span>
+          <label class="upload-lbl" id="lbl-history">&#128193; Upload manually<input type="file" id="file-history" accept=".html,.htm" style="display:none"></label>
         </div>
         <div class="fetch-link">
           <span class="lbl">&#127937; Latest Results</span>
           <span class="url" id="url-latest"></span>
           <span class="status" id="st-latest"></span>
+          <label class="upload-lbl" id="lbl-latest">&#128193; Upload manually<input type="file" id="file-latest" accept=".html,.htm" style="display:none"></label>
         </div>
       </div>
       <button class="btn" id="fetchbtn">Fetch Data</button>
@@ -192,20 +176,9 @@ footer{text-align:center;color:var(--muted);font-size:.75em;padding:20px}
     <div id="statbox"></div>
   </div>
 </main>
-<footer>parkrun Summary Generator &nbsp;&middot;&nbsp; Data from parkrun.org.uk &nbsp;&middot;&nbsp; <span id="reportcount"></span></footer>
+<footer>parkrun Summary Generator &nbsp;&middot;&nbsp; Data from parkrun.org.uk</footer>
 <script>
 let AE=[],SE=null,dataReady=false;
-
-// ── Report counter ─────────────────────────────────────────────────────────
-(async()=>{
-  try{
-    const r=await fetch('/counter');
-    const d=await r.json();
-    if(d.count>0){
-      document.getElementById('reportcount').textContent='📊 '+d.count+' report'+(d.count===1?'':'s')+' generated';
-    }
-  }catch(e){}
-})();
 
 // ── Load events ────────────────────────────────────────────────────────────
 async function loadEvents(){
@@ -270,6 +243,48 @@ function pickEvent(ev){
   document.getElementById('fetchpanel').classList.add('on');
   resetStatus();chk();
 }
+
+// ── Manual upload ─────────────────────────────────────────────────────────
+async function handleUpload(inputId, lblId, stId, fileType){
+  const file=document.getElementById(inputId).files[0];
+  if(!file||!SE)return;
+  document.getElementById(stId).textContent='Uploading...';
+  document.getElementById(stId).className='status';
+  const fd=new FormData();
+  fd.append('file',file);
+  fd.append('slug',SE.slug);
+  fd.append('file_type',fileType);
+  fd.append('event_name',SE.name);
+  fd.append('lat',SE.lat);
+  fd.append('lon',SE.lon);
+  fd.append('country_url',SE.countryUrl);
+  try{
+    const resp=await fetch('/upload-file',{method:'POST',body:fd});
+    const d=await resp.json();
+    if(d.ok){
+      document.getElementById(stId).className='status ok';
+      document.getElementById(stId).innerHTML='&#10003; Uploaded ('+d.count+' '+(fileType==='history'?'events':'runners')+')';
+      document.getElementById(lblId).classList.add('done');
+      document.getElementById(lblId).textContent='&#10003; Uploaded';
+      checkUploadReady();
+    }else{
+      document.getElementById(stId).className='status er';
+      document.getElementById(stId).textContent='Upload failed: '+d.error;
+    }
+  }catch(e){
+    document.getElementById(stId).className='status er';
+    document.getElementById(stId).textContent='Upload error: '+e.message;
+  }
+}
+
+function checkUploadReady(){
+  const hOk=document.getElementById('st-history').className.includes('ok');
+  const lOk=document.getElementById('st-latest').className.includes('ok');
+  if(hOk&&lOk){dataReady=true;document.getElementById('genbtn').disabled=false;}
+}
+
+document.getElementById('file-history').addEventListener('change',()=>handleUpload('file-history','lbl-history','st-history','history'));
+document.getElementById('file-latest').addEventListener('change',()=>handleUpload('file-latest','lbl-latest','st-latest','latest'));
 
 // ── Fetch data ─────────────────────────────────────────────────────────────
 document.getElementById('fetchbtn').addEventListener('click',async()=>{
@@ -338,8 +353,8 @@ document.getElementById('genbtn').addEventListener('click',async()=>{
       }
       sb.className='ok';
       sb.innerHTML='&#10003; Summary generated for <strong>'+d.date+'</strong><br><br>'
-        +'<a class="dlb" href="/view/'+d.filename+'" target="_blank">&#128065; View in Browser</a>'
-        +'<br><small style="color:#555;margin-top:8px;display:block">If the summary looks incomplete, return to this page and click View in Browser again.</small>';
+        +'<a class="dlb" href="/view/'+d.filename+'" target="_blank">&#128065; View in Browser</a>&nbsp;'
+        +'<a class="dlb" href="/download/'+d.filename+'" style="background:#40916c">&#11015; Download HTML</a>';
     }else{
       const det=d.traceback?'<pre style="font-size:.75em;margin-top:8px;white-space:pre-wrap;text-align:left">'+d.traceback+'</pre>':'';
       sb.className='er';sb.innerHTML='&#10007; Error: '+d.error+det;
@@ -398,11 +413,6 @@ def read_cache(slug: str):
     }
 
 
-@app.route("/counter")
-def counter():
-    return jsonify({"count": get_report_count()})
-
-
 @app.route("/test-fetch")
 def test_fetch():
     """Debug route: fetch Shrewsbury event history and return status + first 500 chars."""
@@ -418,6 +428,57 @@ def test_fetch():
 @app.route("/")
 def index():
     return render_template_string(HTML_PAGE)
+
+
+@app.route("/upload-file", methods=["POST"])
+def upload_file():
+    slug        = request.form.get("slug", "").strip()
+    file_type   = request.form.get("file_type", "").strip()  # "history" or "latest"
+    event_name  = request.form.get("event_name", slug).strip()
+    lat         = float(request.form.get("lat") or 52.7076)
+    lon         = float(request.form.get("lon") or -2.7521)
+    country_url = request.form.get("country_url", "").strip()
+
+    if not slug or file_type not in ("history", "latest"):
+        return jsonify({"ok": False, "error": "Missing slug or invalid file_type"})
+
+    f = request.files.get("file")
+    if not f:
+        return jsonify({"ok": False, "error": "No file received"})
+
+    html = f.read().decode("utf-8", errors="replace")
+
+    # Ensure cache dir exists and write just this file
+    d = cache_path(slug)
+    os.makedirs(d, exist_ok=True)
+
+    # Write meta if not already present
+    import json
+    meta_path = os.path.join(d, "meta.json")
+    if not os.path.exists(meta_path):
+        with open(meta_path, "w") as mf:
+            json.dump({"event_name": sanitise_event_name(event_name), "lat": lat, "lon": lon}, mf)
+
+    if file_type == "history":
+        path = os.path.join(d, "eventhistory.html")
+        with open(path, "w", encoding="utf-8") as out:
+            out.write(html)
+        try:
+            from parkrun_summary import parse_event_history
+            count = len(parse_event_history(path))
+            return jsonify({"ok": True, "count": count})
+        except Exception as e:
+            return jsonify({"ok": False, "error": f"Uploaded but parse failed: {e}"})
+    else:
+        path = os.path.join(d, "latestresults.html")
+        with open(path, "w", encoding="utf-8") as out:
+            out.write(html)
+        try:
+            from parkrun_summary import parse_latest_results
+            count = len(parse_latest_results(path))
+            return jsonify({"ok": True, "count": count})
+        except Exception as e:
+            return jsonify({"ok": False, "error": f"Uploaded but parse failed: {e}"})
 
 
 @app.route("/fetch-event", methods=["POST"])
@@ -494,13 +555,11 @@ def generate():
             os.fsync(f.fileno())
         os.replace(tmp_path, final_path)
 
-        count = increment_report_count()
         return jsonify({
             "ok":       True,
             "filename": hfn,
             "size":     os.path.getsize(final_path),
             "date":     datetime.date.today().strftime("%A, %d %B %Y"),
-            "count":    count,
         })
 
     except Exception as e:
