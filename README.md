@@ -12,6 +12,7 @@ Built for parkrun volunteers and run directors who want a polished, shareable ev
 
 - 🔍 **Search any parkrun event** from the full global events list
 - 🤖 **Automatic data fetching** — no manual HTML downloads; the server fetches parkrun pages directly using cloudscraper
+- 📁 **Manual upload fallback** — if automatic fetching is blocked, save the pages in your browser and upload them directly
 - 📊 **Comprehensive summary** including:
   - Weather at race time (via Open-Meteo, no API key needed)
   - Attendance and volunteer stats with historical averages
@@ -19,9 +20,10 @@ Built for parkrun volunteers and run directors who want a polished, shareable ev
   - Personal bests, milestone achievers (25/50/100/250/500 runs), milestone chasers
   - First timers (first ever parkrun + first time at this event)
   - Age category winners
-  - Club representation
+  - Club representation with full runner lists
   - Fun stats: noughty step, multiples of 50, rep-digit positions
   - All-time records and course records
+- 📈 **Persistent report counter** — tracks total summaries generated across rebuilds
 - 🌍 **Works for any parkrun globally**
 - 🐳 **Docker-ready** — designed for self-hosted deployment (Synology NAS or any Docker host)
 
@@ -30,7 +32,6 @@ Built for parkrun volunteers and run directors who want a polished, shareable ev
 ## Screenshots
 
 ![parkrun Summary Generator](screenshots/Screenshot.png)
-
 
 ---
 
@@ -73,11 +74,11 @@ Open `http://localhost:8767` in your browser.
 ## Usage
 
 1. **Search** for your parkrun event in the search box
-2. **Click Fetch Data** — the server retrieves the event history and latest results pages automatically
+2. **Click Fetch Data** — the server retrieves the event history and latest results pages automatically. If parkrun blocks the request, save the pages manually in your browser and use the upload buttons instead
 3. **Click Generate Summary** — this takes 20–60 seconds
 4. **Click View in Browser** to open the finished HTML summary
 
-> If the summary looks incomplete on first click, return to the page and click View in Browser again. Generation can take a little longer than the response time on some hosts.
+> If the summary looks incomplete on first click, return to the page and click View in Browser again.
 
 ---
 
@@ -133,17 +134,12 @@ parkrun-summary-generator/
 
 ---
 
-## Contributing
-
-Pull requests welcome. Please open an issue first for significant changes.
-
-## Licence
-
-MIT
-
----
-
 ## Changelog
+
+### v1.3
+- Manual file upload fallback — if parkrun blocks automatic fetching, save the HTML pages in your browser and upload them directly
+- Club Runners section added — all affiliated runners listed by club with member count badges
+- Fixed import error (`shrewsbury_summary` → `parkrun_summary`)
 
 ### v1.2
 - Persistent report counter — tracks total summaries generated across rebuilds, displayed in the footer
@@ -151,7 +147,7 @@ MIT
 
 ### v1.1
 - Weather icons now reflect actual conditions (☀️ clear, ⛅ partly cloudy, 🌦️ rain, ❄️ snow, ⛈️ thunder etc.)
-- Rain field now shows ✅ Dry or 🌧️ with the actual amount — no more raincloud icon when it's dry
+- Rain field now shows ✅ Dry or 🌧️ with the actual amount
 - "First time at this event" now fully generic for any parkrun location
 - `parkrun_summary.py` — fully generic, works for any parkrun event worldwide
 - Favicon added — parkrun-inspired green icon with running figure and "p" lettermark
@@ -163,3 +159,13 @@ MIT
 - Full weekly summary: attendance, volunteers, top 10, PBs, milestones, age categories, clubs, records
 - Weather via Open-Meteo (no API key required)
 - Docker-ready for self-hosted deployment
+
+---
+
+## Contributing
+
+Pull requests welcome. Please open an issue first for significant changes.
+
+## Licence
+
+MIT
