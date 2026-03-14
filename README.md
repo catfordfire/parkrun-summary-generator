@@ -8,6 +8,8 @@ Built for parkrun volunteers and run directors who want a polished, shareable ev
 
 ---
 
+> ⚠️ **Disclaimer:** This tool is an independent project and is not affiliated with, endorsed by, or connected to parkrun in any way. It is intended for personal and testing use only. All data remains the property of parkrun. Please use responsibly and in accordance with [parkrun's data guidelines](https://www.parkrun.com/scraping). Do not use this tool in any way that places excessive load on parkrun's servers.
+
 ## Features
 
 - 🔍 **Search any parkrun event** from the full global events list

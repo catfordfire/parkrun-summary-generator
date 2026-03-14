@@ -176,7 +176,14 @@ footer{text-align:center;color:var(--muted);font-size:.75em;padding:20px}
     <div id="statbox"></div>
   </div>
 </main>
-<footer>parkrun Summary Generator &nbsp;&middot;&nbsp; Data from parkrun.org.uk</footer>
+<footer>
+  parkrun Summary Generator &nbsp;&middot;&nbsp; Data from parkrun.org.uk &nbsp;&middot;&nbsp; <span id="reportcount"></span>
+  <div style="margin-top:8px;font-size:.7em;color:#aaa;max-width:600px;margin-left:auto;margin-right:auto;line-height:1.5">
+    &#9888;&#65039; This tool is an independent project and is not affiliated with, endorsed by, or connected to parkrun in any way.
+    It is intended for personal and testing use only. All data remains the property of parkrun.
+    Please use responsibly and in accordance with <a href="https://www.parkrun.com/scraping" style="color:#aaa">parkrun's data guidelines</a>.
+  </div>
+</footer>
 <script>
 let AE=[],SE=null,dataReady=false;
 
