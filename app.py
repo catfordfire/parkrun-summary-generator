@@ -171,26 +171,9 @@ footer{text-align:center;color:var(--muted);font-size:.75em;padding:20px}
     <div id="statbox"></div>
   </div>
 </main>
-<footer>
-  parkrun Summary Generator &nbsp;&middot;&nbsp; Data from parkrun.org.uk &nbsp;&middot;&nbsp; <span id="reportcount"></span>
-  <div style="margin-top:8px;font-size:.7em;color:#aaa;max-width:600px;margin-left:auto;margin-right:auto;line-height:1.5">
-    &#9888;&#65039; This tool is an independent project and is not affiliated with, endorsed by, or connected to parkrun in any way.
-    It is intended for personal and testing use only. All data remains the property of parkrun.
-    Please use responsibly and in accordance with <a href="https://www.parkrun.com/scraping" style="color:#aaa">parkrun's data guidelines</a>.
-  </div>
-</footer>
+<footer>parkrun Summary Generator &nbsp;&middot;&nbsp; Data from parkrun.org.uk</footer>
 <script>
 let AE=[],SE=null,dataReady=false;
-
-(async()=>{
-  try{
-    const r=await fetch('/counter');
-    const d=await r.json();
-    if(d.count>0){
-      document.getElementById('reportcount').textContent='📊 '+d.count+' report'+(d.count===1?'':'s')+' generated';
-    }
-  }catch(e){}
-})();
 
 // ── Load events ────────────────────────────────────────────────────────────
 async function loadEvents(){
@@ -346,26 +329,6 @@ function chk(){/* generate btn managed by fetch flow */}
 
 
 CACHE_DIR = "/tmp/parkrun-cache"
-COUNTER_FILE = os.path.join(SUMMARIES_DIR, ".report_counter.json")
-_events_cache = None
-
-def get_report_count() -> int:
-    try:
-        import json
-        with open(COUNTER_FILE, "r") as f:
-            return json.load(f).get("count", 0)
-    except Exception:
-        return 0
-
-def increment_report_count() -> int:
-    import json
-    count = get_report_count() + 1
-    try:
-        with open(COUNTER_FILE, "w") as f:
-            json.dump({"count": count}, f)
-    except Exception:
-        pass
-    return count
 os.makedirs(CACHE_DIR, exist_ok=True)
 
 
@@ -420,25 +383,6 @@ def index():
     return render_template_string(HTML_PAGE)
 
 
-@app.route("/events")
-def events():
-    global _events_cache
-    from flask import Response
-    if _events_cache is not None:
-        return Response(_events_cache, mimetype="application/json")
-    try:
-        r = requests.get("https://images.parkrun.com/events.json", timeout=30)
-        _events_cache = r.content
-        return Response(_events_cache, mimetype="application/json")
-    except Exception as e:
-        return jsonify({"error": str(e)}), 502
-
-
-@app.route("/counter")
-def counter():
-    return jsonify({"count": get_report_count()})
-
-
 @app.route("/upload-file", methods=["POST"])
 def upload_file():
     slug        = request.form.get("slug", "").strip()
@@ -446,11 +390,9 @@ def upload_file():
     event_name  = request.form.get("event_name", slug).strip()
     lat         = float(request.form.get("lat") or 52.7076)
     lon         = float(request.form.get("lon") or -2.7521)
-    country_url = request.form.get("country_url", "").strip()
 
     if not slug or file_type not in ("history", "latest"):
         return jsonify({"ok": False, "error": "Missing slug or invalid file_type"})
-
     f = request.files.get("file")
     if not f:
         return jsonify({"ok": False, "error": "No file received"})
@@ -465,26 +407,18 @@ def upload_file():
         with open(meta_path, "w") as mf:
             json.dump({"event_name": sanitise_event_name(event_name), "lat": lat, "lon": lon}, mf)
 
-    if file_type == "history":
-        path = os.path.join(d, "eventhistory.html")
-        with open(path, "w", encoding="utf-8") as out:
-            out.write(html)
-        try:
-            from parkrun_summary import parse_event_history
-            count = len(parse_event_history(path))
-            return jsonify({"ok": True, "count": count})
-        except Exception as e:
-            return jsonify({"ok": False, "error": f"Uploaded but parse failed: {e}"})
-    else:
-        path = os.path.join(d, "latestresults.html")
-        with open(path, "w", encoding="utf-8") as out:
-            out.write(html)
-        try:
-            from parkrun_summary import parse_latest_results
-            count = len(parse_latest_results(path))
-            return jsonify({"ok": True, "count": count})
-        except Exception as e:
-            return jsonify({"ok": False, "error": f"Uploaded but parse failed: {e}"})
+    fname = "eventhistory.html" if file_type == "history" else "latestresults.html"
+    with open(os.path.join(d, fname), "w", encoding="utf-8") as out:
+        out.write(html)
+    try:
+        from parkrun_summary import parse_event_history, parse_latest_results
+        if file_type == "history":
+            count = len(parse_event_history(os.path.join(d, fname)))
+        else:
+            count = len(parse_latest_results(os.path.join(d, fname)))
+        return jsonify({"ok": True, "count": count})
+    except Exception as e:
+        return jsonify({"ok": False, "error": f"Uploaded but parse failed: {e}"})
 
 
 @app.route("/fetch-event", methods=["POST"])
@@ -522,7 +456,7 @@ def fetch_event():
     cached = read_cache(slug)
 
     try:
-        from shrewsbury_summary import parse_event_history, parse_latest_results
+        from parkrun_summary import parse_event_history, parse_latest_results
         event_count  = len(parse_event_history(cached["history_path"]))
         runner_count = len(parse_latest_results(cached["latest_path"]))
         return jsonify({"ok": True, "event_count": event_count, "runner_count": runner_count})
@@ -561,13 +495,11 @@ def generate():
             os.fsync(f.fileno())
         os.replace(tmp_path, final_path)
 
-        count = increment_report_count()
         return jsonify({
             "ok":       True,
             "filename": hfn,
             "size":     os.path.getsize(final_path),
             "date":     datetime.date.today().strftime("%A, %d %B %Y"),
-            "count":    count,
         })
 
     except Exception as e:
