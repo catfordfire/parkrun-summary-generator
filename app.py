@@ -93,9 +93,6 @@ main{flex:1;max-width:640px;margin:48px auto;padding:0 24px;width:100%}
 .fetch-link .status{font-size:.78em;margin-top:4px}
 .fetch-link .status.ok{color:#1e8449}
 .fetch-link .status.er{color:var(--red)}
-.upload-lbl{font-size:.75em;color:var(--mid);cursor:pointer;margin-top:6px;display:inline-block}
-.upload-lbl:hover{color:var(--green);text-decoration:underline}
-.upload-lbl.done{color:#1e8449}
 /* buttons */
 .btn{width:100%;padding:15px;background:var(--green);color:var(--white);border:none;border-radius:10px;font-family:"DM Sans",sans-serif;font-size:1em;font-weight:600;cursor:pointer;transition:background .2s,transform .1s;margin-top:4px}
 .btn:hover:not(:disabled){background:var(--mid)}
@@ -132,7 +129,7 @@ footer{text-align:center;color:var(--muted);font-size:.75em;padding:20px}
     <p class="hint">Search for your parkrun event, fetch the data, and generate your weekly summary.</p>
     <div class="steps">
       <div class="step"><div class="stepn">1</div><div class="stept">Search for and select your parkrun event below</div></div>
-      <div class="step"><div class="stepn">2</div><div class="stept">Click <strong>Fetch Data</strong> &mdash; the server retrieves your event&rsquo;s results automatically. If blocked, save the pages manually in your browser and upload them instead.</div></div>
+      <div class="step"><div class="stepn">2</div><div class="stept">Click <strong>Fetch Data</strong> &mdash; the server retrieves your event&rsquo;s results automatically</div></div>
       <div class="step"><div class="stepn">3</div><div class="stept">Click <strong>Generate Summary</strong></div></div>
     </div>
   </div>
@@ -160,13 +157,11 @@ footer{text-align:center;color:var(--muted);font-size:.75em;padding:20px}
           <span class="lbl">&#128203; Event History</span>
           <span class="url" id="url-history"></span>
           <span class="status" id="st-history"></span>
-          <label class="upload-lbl" id="lbl-history">&#128193; Upload manually<input type="file" id="file-history" accept=".html,.htm" style="display:none"></label>
         </div>
         <div class="fetch-link">
           <span class="lbl">&#127937; Latest Results</span>
           <span class="url" id="url-latest"></span>
           <span class="status" id="st-latest"></span>
-          <label class="upload-lbl" id="lbl-latest">&#128193; Upload manually<input type="file" id="file-latest" accept=".html,.htm" style="display:none"></label>
         </div>
       </div>
       <button class="btn" id="fetchbtn">Fetch Data</button>
@@ -186,6 +181,16 @@ footer{text-align:center;color:var(--muted);font-size:.75em;padding:20px}
 </footer>
 <script>
 let AE=[],SE=null,dataReady=false;
+
+(async()=>{
+  try{
+    const r=await fetch('/counter');
+    const d=await r.json();
+    if(d.count>0){
+      document.getElementById('reportcount').textContent='📊 '+d.count+' report'+(d.count===1?'':'s')+' generated';
+    }
+  }catch(e){}
+})();
 
 // ── Load events ────────────────────────────────────────────────────────────
 async function loadEvents(){
@@ -250,48 +255,6 @@ function pickEvent(ev){
   document.getElementById('fetchpanel').classList.add('on');
   resetStatus();chk();
 }
-
-// ── Manual upload ─────────────────────────────────────────────────────────
-async function handleUpload(inputId, lblId, stId, fileType){
-  const file=document.getElementById(inputId).files[0];
-  if(!file||!SE)return;
-  document.getElementById(stId).textContent='Uploading...';
-  document.getElementById(stId).className='status';
-  const fd=new FormData();
-  fd.append('file',file);
-  fd.append('slug',SE.slug);
-  fd.append('file_type',fileType);
-  fd.append('event_name',SE.name);
-  fd.append('lat',SE.lat);
-  fd.append('lon',SE.lon);
-  fd.append('country_url',SE.countryUrl);
-  try{
-    const resp=await fetch('/upload-file',{method:'POST',body:fd});
-    const d=await resp.json();
-    if(d.ok){
-      document.getElementById(stId).className='status ok';
-      document.getElementById(stId).innerHTML='&#10003; Uploaded ('+d.count+' '+(fileType==='history'?'events':'runners')+')';
-      document.getElementById(lblId).classList.add('done');
-      document.getElementById(lblId).innerHTML='&#10003; Uploaded';
-      checkUploadReady();
-    }else{
-      document.getElementById(stId).className='status er';
-      document.getElementById(stId).textContent='Upload failed: '+d.error;
-    }
-  }catch(e){
-    document.getElementById(stId).className='status er';
-    document.getElementById(stId).textContent='Upload error: '+e.message;
-  }
-}
-
-function checkUploadReady(){
-  const hOk=document.getElementById('st-history').className.includes('ok');
-  const lOk=document.getElementById('st-latest').className.includes('ok');
-  if(hOk&&lOk){dataReady=true;document.getElementById('genbtn').disabled=false;}
-}
-
-document.getElementById('file-history').addEventListener('change',()=>handleUpload('file-history','lbl-history','st-history','history'));
-document.getElementById('file-latest').addEventListener('change',()=>handleUpload('file-latest','lbl-latest','st-latest','latest'));
 
 // ── Fetch data ─────────────────────────────────────────────────────────────
 document.getElementById('fetchbtn').addEventListener('click',async()=>{
@@ -383,6 +346,26 @@ function chk(){/* generate btn managed by fetch flow */}
 
 
 CACHE_DIR = "/tmp/parkrun-cache"
+COUNTER_FILE = os.path.join(SUMMARIES_DIR, ".report_counter.json")
+_events_cache = None
+
+def get_report_count() -> int:
+    try:
+        import json
+        with open(COUNTER_FILE, "r") as f:
+            return json.load(f).get("count", 0)
+    except Exception:
+        return 0
+
+def increment_report_count() -> int:
+    import json
+    count = get_report_count() + 1
+    try:
+        with open(COUNTER_FILE, "w") as f:
+            json.dump({"count": count}, f)
+    except Exception:
+        pass
+    return count
 os.makedirs(CACHE_DIR, exist_ok=True)
 
 
@@ -437,10 +420,29 @@ def index():
     return render_template_string(HTML_PAGE)
 
 
+@app.route("/events")
+def events():
+    global _events_cache
+    from flask import Response
+    if _events_cache is not None:
+        return Response(_events_cache, mimetype="application/json")
+    try:
+        r = requests.get("https://images.parkrun.com/events.json", timeout=30)
+        _events_cache = r.content
+        return Response(_events_cache, mimetype="application/json")
+    except Exception as e:
+        return jsonify({"error": str(e)}), 502
+
+
+@app.route("/counter")
+def counter():
+    return jsonify({"count": get_report_count()})
+
+
 @app.route("/upload-file", methods=["POST"])
 def upload_file():
     slug        = request.form.get("slug", "").strip()
-    file_type   = request.form.get("file_type", "").strip()  # "history" or "latest"
+    file_type   = request.form.get("file_type", "").strip()
     event_name  = request.form.get("event_name", slug).strip()
     lat         = float(request.form.get("lat") or 52.7076)
     lon         = float(request.form.get("lon") or -2.7521)
@@ -454,12 +456,9 @@ def upload_file():
         return jsonify({"ok": False, "error": "No file received"})
 
     html = f.read().decode("utf-8", errors="replace")
-
-    # Ensure cache dir exists and write just this file
     d = cache_path(slug)
     os.makedirs(d, exist_ok=True)
 
-    # Write meta if not already present
     import json
     meta_path = os.path.join(d, "meta.json")
     if not os.path.exists(meta_path):
@@ -523,7 +522,7 @@ def fetch_event():
     cached = read_cache(slug)
 
     try:
-        from parkrun_summary import parse_event_history, parse_latest_results
+        from shrewsbury_summary import parse_event_history, parse_latest_results
         event_count  = len(parse_event_history(cached["history_path"]))
         runner_count = len(parse_latest_results(cached["latest_path"]))
         return jsonify({"ok": True, "event_count": event_count, "runner_count": runner_count})
@@ -562,11 +561,13 @@ def generate():
             os.fsync(f.fileno())
         os.replace(tmp_path, final_path)
 
+        count = increment_report_count()
         return jsonify({
             "ok":       True,
             "filename": hfn,
             "size":     os.path.getsize(final_path),
             "date":     datetime.date.today().strftime("%A, %d %B %Y"),
+            "count":    count,
         })
 
     except Exception as e:
